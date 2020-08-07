@@ -1,21 +1,22 @@
-import 'package:firebase_auth_app/services/auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth_app/services/auth.dart';
 
-class SignIn extends StatefulWidget {
+class Register extends StatefulWidget {
   final Function toggleView;
-  SignIn({this.toggleView});
-
+  Register({this.toggleView});
   @override
-  _SignInState createState() => _SignInState();
+  _RegisterState createState() => _RegisterState();
 }
 
-class _SignInState extends State<SignIn> {
+class _RegisterState extends State<Register> {
   final AuthServices _auth = AuthServices();
+  final _formkey = GlobalKey<FormState>();
 
-  // Text-Field State
+// Text-Field State
 
   String email = '';
   String password = '';
+  String error = '';
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,7 @@ class _SignInState extends State<SignIn> {
       appBar: AppBar(
         backgroundColor: Colors.brown[400],
         elevation: 0.0,
-        title: Text('Sign In to Globe App'),
+        title: Text('Sign Up to Globe App'),
         actions: [
           FlatButton.icon(
             onPressed: () {
@@ -35,7 +36,7 @@ class _SignInState extends State<SignIn> {
               color: Colors.white,
             ),
             label: Text(
-              'Register',
+              'Sign In',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14.0,
@@ -47,12 +48,15 @@ class _SignInState extends State<SignIn> {
       body: Container(
           padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),
           child: Form(
+            key: _formkey,
             child: Column(
               children: [
                 SizedBox(
                   height: 20.0,
                 ),
                 TextFormField(
+                  validator: (val) =>
+                      val.isEmpty ? 'Enter an Proper Email' : null,
                   onChanged: (val) {
                     setState(() {
                       email = val;
@@ -69,6 +73,9 @@ class _SignInState extends State<SignIn> {
                   height: 30.0,
                 ),
                 TextFormField(
+                  validator: (val) => val.length < 6
+                      ? 'Enter a Password 6+ Characters Long'
+                      : null,
                   obscureText: true,
                   onChanged: (val) {
                     setState(() {
@@ -96,24 +103,37 @@ class _SignInState extends State<SignIn> {
                           ),
                           color: Colors.pink[400],
                           child: Text(
-                            'Login',
+                            'Register',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 14.0,
                             ),
                           ),
-                          onPressed: () {
-                            print(email);
-                            print(password);
+                          onPressed: () async {
+                            if (_formkey.currentState.validate()) {
+                              dynamic result = await _auth
+                                  .registerWithEmailPassword(email, password);
+                              if (result == null) {
+                                setState(() {
+                                  error = 'Please Enter Valid Data';
+                                });
+                              }
+                            }
                           },
                         ),
                       ),
                     ),
                   ],
-                )
+                ),
+                SizedBox(height: 12.0),
+                Text(
+                  error,
+                  style: TextStyle(fontSize: 14.0, color: Colors.red),
+                ),
               ],
             ),
           )),
     );
+    ;
   }
 }
